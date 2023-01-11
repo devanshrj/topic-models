@@ -3,11 +3,11 @@ from octis.models.CTM import CTM
 from dataset import Dataset
 
 import argparse
-import csv
 import numpy as np
 import pandas as pd
 import time
 import warnings
+import json
 
 warnings.filterwarnings('ignore')
 
@@ -31,7 +31,7 @@ lda_args = {
 ctm_args = {
     'inference_type': 'combined',
     'model_type': 'prodLDA',
-    'bert_model': 'bert-base-nli-mean-tokens',
+    'bert_model': 'princeton-nlp/sup-simcse-bert-base-uncased',
     'bert_path': '/home/devanshjain/topic_model/logs/ctm_combined'
 }
 
@@ -56,7 +56,6 @@ labels_li = labels_df.iloc[:, 2].to_list()
 print("--- Dataset ---")
 dataset = Dataset()
 dataset.load_custom_dataset_from_folder(dataset_path)
-# print(dataset.get_corpus())
 print("Dataset initialised!")
 
 print("--- Model ---")
@@ -105,12 +104,14 @@ print(len(doc_topic_m), len(doc_topic_m[0]))
 print("Stored document-topic distributions!")
 
 
-print("--- Assigning topics to documents ---")
+print("--- Creating user vectors ---")
 topics_dict = {
     'user_id': [],
     'message_id': [],
     'topic': []
 }
+
+topic_dist = dict()
 
 corpus_li = dataset.get_corpus()
 labels_li = dataset.get_labels()
@@ -119,12 +120,25 @@ for doc_idx, (doc, label) in enumerate(zip(corpus_li, labels_li)):
         print(("Messages Read: %dk" % int(doc_idx/1000)))
     message_id = label.split("_")[0]
     user_id = label.split("_")[1]
-    topics_dict["user_id"].append(user_id)
-    topics_dict["message_id"].append(message_id)
-    topics_dict["topic"].append(np.array(doc_topic_m[doc_idx]))
+    if user_id in topic_dist:
+        topic_dist[user_id].append(np.array(doc_topic_m[doc_idx]))
+    else:
+        topic_dist[user_id] = [np.array(doc_topic_m[doc_idx])]
+    # topics_dict["user_id"].append(user_id)
+    # topics_dict["message_id"].append(message_id)
+    # topics_dict["topic"].append(np.array(doc_topic_m[doc_idx]))
     # print(f"doc_idx: {doc_idx} \t doc: {doc} \t label: {label}")
     # print(f"user_id: {user_id} \t message_id: {message_id} \t topic: {np.array(doc_topic_m[doc_idx])}")
 
-topics_df = pd.DataFrame(topics_dict)
-topics_df.to_csv(state_path, header=True, index=False)
-print("--- Generated topics and stored messages encoded with topics! ---")
+
+user_vectors = dict()
+for user, docs in topic_dist.items():
+    vector = np.mean(docs, axis=0).tolist()
+    user_vectors[user] = vector
+
+
+print(user_vectors['12488'])
+out_file = open(f"{results_path}/{args.model_name}_vectors.json", "w")
+json.dump(user_vectors, out_file)
+out_file.close()
+print("--- Generated topics and stored users vectors! ---")
