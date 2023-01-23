@@ -3,11 +3,11 @@ from octis.models.CTM import CTM
 from dataset import Dataset
 
 import argparse
+import json
 import numpy as np
 import pandas as pd
 import time
 import warnings
-import json
 
 warnings.filterwarnings('ignore')
 
@@ -45,7 +45,7 @@ else:
 
 # doc_topic_path = f"{results_path}/doctopics.txt"
 topics_path = f"{results_path}/{args.model_name}_topics.txt"
-state_path = f"{results_path}/{args.model_name}_distributions.csv"
+state_path = f"{results_path}/{args.model_name}_vectors.json"
 
 
 # labels
@@ -111,11 +111,11 @@ topics_dict = {
     'topic': []
 }
 
-topic_dist = dict()
 
+topic_dist = dict()
 corpus_li = dataset.get_corpus()
 labels_li = dataset.get_labels()
-for doc_idx, (doc, label) in enumerate(zip(corpus_li, labels_li)):
+for doc_idx, (_, label) in enumerate(zip(corpus_li, labels_li)):
     if doc_idx % 5000 == 0:  # progress update
         print(("Messages Read: %dk" % int(doc_idx/1000)))
     message_id = label.split("_")[0]
@@ -137,8 +137,7 @@ for user, docs in topic_dist.items():
     user_vectors[user] = vector
 
 
-print(user_vectors['12488'])
-out_file = open(f"{results_path}/{args.model_name}_vectors.json", "w")
+out_file = open(state_path, "w")
 json.dump(user_vectors, out_file)
 out_file.close()
 print("--- Generated topics and stored users vectors! ---")

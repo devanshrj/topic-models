@@ -1,7 +1,3 @@
-"""
-TO DO: remove characters like: \\u00a6, g\\u00e2, 'gâ' -> 183 such 1grams in the twitter vocabulary
-"""
-
 import ast
 import os
 import pandas as pd
