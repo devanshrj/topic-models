@@ -79,7 +79,11 @@ results_dict = {
 print("\n----- Running prediction models -----")
 print("--- Age: LinearRegression for R2 and RMSE ---")
 age_reg = LinearRegression()
-age_scores = cross_validate(age_reg, features, outcome_age, scoring=('r2', 'neg_root_mean_squared_error'), cv=5)
+features_null = np.ones((len(features), 1))
+age_scores = cross_validate(age_reg, features_null, outcome_age, scoring=('r2', 'neg_root_mean_squared_error'), cv=5)
+print(age_scores)
+
+"""
 age_r2 = np.mean(age_scores['test_r2'])
 results_dict['Age_R2'].append(age_r2)
 
@@ -108,6 +112,7 @@ gender_auc = np.mean(gender_scores['test_score'])
 results_dict['Gender_AUC'].append(gender_auc)
 # print(gender_scores)
 # print("Gender AUC:", gender_auc)
+"""
 
 print("\n----- Results -----")
 results_df = pd.DataFrame(results_dict)

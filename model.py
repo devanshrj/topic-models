@@ -1,5 +1,6 @@
 from octis.models.LDA import LDA
 from octis.models.CTM import CTM
+from octis.models.ProdLDA import ProdLDA
 from dataset import Dataset
 
 import argparse
@@ -35,6 +36,12 @@ ctm_args = {
     'bert_path': '/home/devanshjain/topic_model/logs/ctm_combined'
 }
 
+prodlda_args = {
+    'num_epochs': 100,
+    'num_layers': 2,
+    'num_neurons': 100,
+}
+
 # paths
 if args.dataset == 'sample':
     results_path = "/home/devanshjain/topic_model/sample_pol_results"
@@ -68,7 +75,10 @@ elif args.model_name == 'ctm':
             inference_type=ctm_args['inference_type'], bert_model=ctm_args['bert_model'],
             use_partitions=False, bert_path=ctm_args['bert_path'])
     print("CTM initialised!")
-
+elif args.model_name == 'prodlda':
+    model = ProdLDA(num_topics=num_topics, num_epochs=prodlda_args['num_epochs'],
+    num_layers=prodlda_args['num_layers'], num_neurons=prodlda_args['num_neurons'],
+    use_partitions=False)
 
 # train the model using default partitioning choice
 print("Begin model training...")
@@ -90,6 +100,11 @@ elif args.model_name == 'ctm':
     for idx, topic in enumerate(topic_words):
         if len(topic) > 10:
             topic = topic[:10]
+        top_words = f"|{idx}| " + ', '.join(topic)
+        f_topics.write(top_words + '\n')
+elif args.model_name == 'prodlda':
+    topic_words = output['topics']
+    for idx, topic in enumerate(topic_words):
         top_words = f"|{idx}| " + ', '.join(topic)
         f_topics.write(top_words + '\n')
 print("Top words stored!")
